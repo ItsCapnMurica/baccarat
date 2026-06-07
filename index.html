@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Baccarat</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Share+Tech+Mono&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    background: linear-gradient(160deg, #0d1b0e 0%, #1a2f1c 50%, #0a1a0b 100%);
+    font-family: 'Playfair Display', Georgia, serif;
+    color: #f0e6d3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 16px;
+  }
+
+  .mono { font-family: 'Share Tech Mono', monospace; }
+
+  .header { text-align: center; margin-bottom: 28px; }
+  .header .subtitle { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: 6px; color: #95a5a6; text-transform: uppercase; margin-bottom: 6px; }
+  .header h1 { font-size: 42px; font-weight: 400; color: #d4af37; letter-spacing: 4px; text-shadow: 0 0 20px rgba(212,175,55,0.4); }
+  .header .divider { width: 80px; height: 1px; background: #d4af37; margin: 10px auto 0; opacity: 0.4; }
+
+  .balance-box {
+    background: rgba(212,175,55,0.1);
+    border: 1px solid rgba(212,175,55,0.3);
+    border-radius: 8px;
+    padding: 8px 24px;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+  .balance-box .label { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: #95a5a6; letter-spacing: 2px; text-transform: uppercase; }
+  .balance-box .amount { font-size: 28px; color: #d4af37; font-weight: bold; }
+
+  .game-area {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(212,175,55,0.2);
+    border-radius: 16px;
+    padding: 28px 32px;
+    width: 100%;
+    max-width: 480px;
+  }
+
+  .section-label { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: 3px; color: #95a5a6; text-transform: uppercase; margin-bottom: 12px; }
+
+  .bet-options { display: flex; gap: 8px; margin-bottom: 20px; }
+  .bet-btn {
+    flex: 1; padding: 10px 0; border-radius: 8px;
+    border: 2px solid rgba(212,175,55,0.2);
+    background: transparent;
+    color: #95a5a6;
+    cursor: pointer; font-size: 13px; letter-spacing: 1px;
+    text-transform: uppercase; font-family: 'Share Tech Mono', monospace;
+    transition: all 0.2s; line-height: 1.4;
+  }
+  .bet-btn.active { border-color: #d4af37; background: rgba(212,175,55,0.15); color: #d4af37; }
+  .bet-btn .payout { font-size: 10px; opacity: 0.7; display: block; }
+
+  .wager-section { margin-bottom: 24px; }
+  .wager-controls { display: flex; align-items: center; gap: 12px; }
+  .wager-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 1px solid rgba(212,175,55,0.3);
+    background: transparent; color: #d4af37; font-size: 20px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .wager-display { flex: 1; text-align: center; font-size: 32px; color: #f0e6d3; font-weight: bold; }
+  .quick-bets { display: flex; gap: 6px; margin-top: 10px; justify-content: center; }
+  .quick-btn {
+    padding: 4px 10px; border-radius: 4px;
+    border: 1px solid rgba(212,175,55,0.2);
+    background: transparent; color: #d4af37; cursor: pointer;
+    font-size: 12px; font-family: 'Share Tech Mono', monospace;
+    transition: background 0.2s;
+  }
+  .quick-btn:hover, .quick-btn.active { background: rgba(212,175,55,0.15); }
+
+  .deal-btn {
+    width: 100%; padding: 14px; border-radius: 10px;
+    background: linear-gradient(135deg, #d4af37, #b8962e);
+    border: none; color: #1a1a0a; font-size: 15px; font-weight: bold;
+    letter-spacing: 3px; text-transform: uppercase; cursor: pointer;
+    font-family: 'Share Tech Mono', monospace;
+    box-shadow: 0 4px 16px rgba(212,175,55,0.3);
+    transition: opacity 0.2s;
+  }
+  .deal-btn:hover { opacity: 0.9; }
+
+  .hands-area { display: flex; justify-content: space-around; margin-bottom: 24px; gap: 16px; }
+  .hand { text-align: center; flex: 1; }
+  .hand-label { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: 3px; color: #95a5a6; text-transform: uppercase; margin-bottom: 8px; }
+  .cards { display: flex; gap: 8px; justify-content: center; margin-bottom: 10px; flex-wrap: wrap; }
+  .hand-divider { width: 1px; background: rgba(212,175,55,0.2); }
+  .hand-total { font-size: 28px; font-weight: bold; color: #f0e6d3; }
+
+  .card {
+    width: 56px; height: 80px; border-radius: 8px;
+    background: #fff; border: 2px solid #ddd;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    flex-shrink: 0;
+  }
+  .card .rank { font-size: 18px; font-weight: bold; line-height: 1; }
+  .card .suit { font-size: 22px; line-height: 1; }
+  .card.red { color: #c0392b; }
+  .card.black { color: #1a1a2e; }
+
+  .result-msg {
+    text-align: center; padding: 12px 16px;
+    border-radius: 8px; margin-bottom: 20px;
+    font-size: 14px; font-family: 'Share Tech Mono', monospace;
+  }
+  .result-msg.win { background: rgba(46,204,113,0.15); border: 1px solid rgba(46,204,113,0.4); color: #2ecc71; }
+  .result-msg.lose { background: rgba(231,76,60,0.15); border: 1px solid rgba(231,76,60,0.4); color: #e74c3c; }
+
+  .next-btn {
+    width: 100%; padding: 12px; border-radius: 10px;
+    background: transparent; border: 2px solid rgba(212,175,55,0.4);
+    color: #d4af37; font-size: 13px; letter-spacing: 3px;
+    text-transform: uppercase; cursor: pointer;
+    font-family: 'Share Tech Mono', monospace;
+    transition: background 0.2s;
+  }
+  .next-btn:hover { background: rgba(212,175,55,0.05); }
+
+  .broke-screen { text-align: center; }
+  .broke-screen .skull { font-size: 40px; margin-bottom: 12px; }
+  .broke-screen .msg { color: #e74c3c; font-size: 16px; margin-bottom: 20px; font-family: 'Share Tech Mono', monospace; }
+  .restart-btn {
+    padding: 12px 32px; border-radius: 10px;
+    background: rgba(212,175,55,0.15); border: 2px solid rgba(212,175,55,0.4);
+    color: #d4af37; cursor: pointer; font-size: 13px; letter-spacing: 2px;
+    text-transform: uppercase; font-family: 'Share Tech Mono', monospace;
+  }
+
+  .history { margin-top: 20px; width: 100%; max-width: 480px; }
+  .history-label { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: 3px; color: #95a5a6; text-transform: uppercase; margin-bottom: 8px; text-align: center; }
+  .history-list { display: flex; flex-direction: column; gap: 4px; }
+  .history-item {
+    display: flex; justify-content: space-between;
+    padding: 6px 14px; border-radius: 6px;
+    background: rgba(0,0,0,0.3); font-size: 12px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+  .history-item.win { color: #2ecc71; }
+  .history-item.lose { color: #e74c3c; }
+
+  #bet-phase, #result-phase, #broke-phase { display: none; }
+  #bet-phase.active, #result-phase.active, #broke-phase.active { display: block; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="subtitle">Casino Royale</div>
+  <h1>BACCARAT</h1>
+  <div class="divider"></div>
+</div>
+
+<div class="balance-box">
+  <div class="label">Point Balance</div>
+  <div class="amount" id="balance">10</div>
+</div>
+
+<div class="game-area">
+
+  <!-- Bet Phase -->
+  <div id="bet-phase" class="active">
+    <div class="section-label">Bet On</div>
+    <div class="bet-options">
+      <button class="bet-btn active" data-bet="player" onclick="selectBet('player')">Player</button>
+      <button class="bet-btn" data-bet="banker" onclick="selectBet('banker')">Banker</button>
+      <button class="bet-btn" data-bet="tie" onclick="selectBet('tie')">Tie<span class="payout">8x</span></button>
+    </div>
+
+    <div class="wager-section">
+      <div class="section-label">points to Wager</div>
+      <div class="wager-controls">
+        <button class="wager-btn" onclick="changeBet(-1)">−</button>
+        <div class="wager-display" id="wager-display">1</div>
+        <button class="wager-btn" onclick="changeBet(1)">+</button>
+      </div>
+      <div class="quick-bets" id="quick-bets"></div>
+    </div>
+
+    <button class="deal-btn" onclick="deal()">Deal Cards</button>
+  </div>
+
+  <!-- Result Phase -->
+  <div id="result-phase">
+    <div class="hands-area">
+      <div class="hand">
+        <div class="hand-label">Player</div>
+        <div class="cards" id="player-cards"></div>
+        <div class="hand-total" id="player-total">0</div>
+      </div>
+      <div class="hand-divider"></div>
+      <div class="hand">
+        <div class="hand-label">Banker</div>
+        <div class="cards" id="banker-cards"></div>
+        <div class="hand-total" id="banker-total">0</div>
+      </div>
+    </div>
+    <div class="result-msg" id="result-msg"></div>
+    <button class="next-btn" onclick="nextHand()">Next Hand</button>
+  </div>
+
+  <!-- Broke Phase -->
+  <div id="broke-phase">
+    <div class="broke-screen">
+      <div class="skull">X</div>
+      <div class="msg">You're broke. The house wins.</div>
+      <button class="restart-btn" onclick="restart()">Start Over (10 points)</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="history" id="history-section" style="display:none;">
+  <div class="history-label">Recent Hands</div>
+  <div class="history-list" id="history-list"></div>
+</div>
+
+<script>
+  const SUITS = ["♠", "♥", "♦", "♣"];
+  const RANKS = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+  const RED_SUITS = ["♥","♦"];
+
+  let points = 10;
+  let bet = 1;
+  let betOn = "player";
+  let deck = [];
+  let history = [];
+
+  function newDeck() {
+    const d = [];
+    for (const s of SUITS) for (const r of RANKS) d.push({suit:s, rank:r});
+    return d.sort(() => Math.random() - 0.5);
+  }
+
+  function cardValue(card) {
+    if (["10","J","Q","K"].includes(card.rank)) return 0;
+    if (card.rank === "A") return 1;
+    return parseInt(card.rank);
+  }
+
+  function handTotal(cards) {
+    return cards.reduce((s,c) => s + cardValue(c), 0) % 10;
+  }
+
+  function dealHands() {
+    if (deck.length < 10) deck = newDeck();
+    const player = [deck.pop(), deck.pop()];
+    const banker = [deck.pop(), deck.pop()];
+    const pT = handTotal(player), bT = handTotal(banker);
+
+    if (pT >= 8 || bT >= 8) return {player, banker};
+
+    if (pT <= 5) player.push(deck.pop());
+
+    const pThird = player[2] ? cardValue(player[2]) : null;
+    let draw = false;
+    const bNow = handTotal(banker);
+
+    if (player.length === 2) { draw = bNow <= 5; }
+    else {
+      if (bNow <= 2) draw = true;
+      else if (bNow === 3) draw = pThird !== 8;
+      else if (bNow === 4) draw = pThird >= 2 && pThird <= 7;
+      else if (bNow === 5) draw = pThird >= 4 && pThird <= 7;
+      else if (bNow === 6) draw = pThird === 6 || pThird === 7;
+    }
+    if (draw) banker.push(deck.pop());
+    return {player, banker};
+  }
+
+  function getWinner(p, b) {
+    const pt = handTotal(p), bt = handTotal(b);
+    if (pt > bt) return "player";
+    if (bt > pt) return "banker";
+    return "tie";
+  }
+
+  function renderCard(card) {
+    const isRed = RED_SUITS.includes(card.suit);
+    return `<div class="card ${isRed ? 'red' : 'black'}">
+      <div class="rank">${card.rank}</div>
+      <div class="suit">${card.suit}</div>
+    </div>`;
+  }
+
+  function updateBalance() {
+    document.getElementById("balance").textContent = points;
+  }
+
+  function updateQuickBets() {
+    const vals = [1, 2, 5, Math.min(10, points)].filter((v,i,a) => a.indexOf(v) === i && v <= points);
+    document.getElementById("quick-bets").innerHTML = vals.map(v =>
+      `<button class="quick-btn ${bet===v?'active':''}" onclick="setQuickBet(${v})">${v}</button>`
+    ).join("");
+  }
+
+  function selectBet(opt) {
+    betOn = opt;
+    document.querySelectorAll(".bet-btn").forEach(b => {
+      b.classList.toggle("active", b.dataset.bet === opt);
+    });
+  }
+
+  function changeBet(delta) {
+    bet = Math.max(1, Math.min(points, bet + delta));
+    document.getElementById("wager-display").textContent = bet;
+    updateQuickBets();
+  }
+
+  function setQuickBet(v) {
+    bet = v;
+    document.getElementById("wager-display").textContent = bet;
+    updateQuickBets();
+  }
+
+  function setPhase(phase) {
+    ["bet","result","broke"].forEach(p => {
+      document.getElementById(p+"-phase").classList.toggle("active", p === phase);
+    });
+  }
+
+  function deal() {
+    if (bet > points) return;
+    const {player, banker} = dealHands();
+    const winner = getWinner(player, banker);
+
+    document.getElementById("player-cards").innerHTML = player.map(renderCard).join("");
+    document.getElementById("banker-cards").innerHTML = banker.map(renderCard).join("");
+    document.getElementById("player-total").textContent = handTotal(player);
+    document.getElementById("banker-total").textContent = handTotal(banker);
+
+    let payout = 0, msg = "", win = false;
+    if (winner === betOn) {
+      win = true;
+      payout = betOn === "tie" ? bet * 8 : bet;
+      points += payout;
+      msg = betOn === "tie"
+        ? `Tie! You win ${payout} points!`
+        : `${winner.toUpperCase()} wins! You win ${payout} points!`;
+    } else {
+      points -= bet;
+      payout = -bet;
+      msg = `${winner.toUpperCase()} wins. You lose ${bet} points.`;
+    }
+
+    const msgEl = document.getElementById("result-msg");
+    msgEl.textContent = msg;
+    msgEl.className = "result-msg " + (win ? "win" : "lose");
+
+    history.unshift({winner, betOn, payout});
+    if (history.length > 5) history.pop();
+    renderHistory();
+
+    updateBalance();
+    setPhase("result");
+  }
+
+  function renderHistory() {
+    if (history.length === 0) { document.getElementById("history-section").style.display = "none"; return; }
+    document.getElementById("history-section").style.display = "block";
+    document.getElementById("history-list").innerHTML = history.map(h =>
+      `<div class="history-item ${h.payout > 0 ? 'win' : 'lose'}">
+        <span>${h.winner.toUpperCase()} won — bet on ${h.betOn}</span>
+        <span>${h.payout > 0 ? '+' : ''}${h.payout}</span>
+      </div>`
+    ).join("");
+  }
+
+  function nextHand() {
+    if (points <= 0) { setPhase("broke"); return; }
+    bet = Math.min(bet, points);
+    document.getElementById("wager-display").textContent = bet;
+    updateQuickBets();
+    setPhase("bet");
+  }
+
+  function restart() {
+    points = 10; bet = 1; betOn = "player"; history = [];
+    selectBet("player");
+    updateBalance();
+    updateQuickBets();
+    renderHistory();
+    document.getElementById("wager-display").textContent = 1;
+    setPhase("bet");
+  }
+
+  // Init
+  deck = newDeck();
+  updateQuickBets();
+</script>
+</body>
+</html>
